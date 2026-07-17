@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Managers Bootcamp 2026 — Day 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#000000; --bg:#0a0b0c; --green:#00F3BC; --gray-dark:#43464B;
+    --white:#FFFFFF; --g1:#F2F3F3; --g2:#CCCCCC; --g3:#9A9998; --g4:#666665;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#000;overflow:hidden;font-family:'Roboto',sans-serif}
+
+  #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(120% 120% at 82% 0%, #14171a 0%, #050506 60%, #000 100%);}
+
+  /* Fixed 1280x720 canvas, scaled to fit via JS */
+  .deck{position:relative;width:1280px;height:720px;background:var(--bg);
+    transform-origin:center center;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.6);}
+
+  .slide{position:absolute;inset:0;opacity:0;visibility:hidden;padding:46px 100px;
+    display:flex;flex-direction:column;justify-content:center;
+    transition:opacity .5s ease, transform .5s ease;transform:translateY(16px);}
+  .slide.active{opacity:1;visibility:visible;transform:translateY(0)}
+
+  .kicker{font-family:'Oswald',sans-serif;font-weight:500;letter-spacing:.28em;
+    text-transform:uppercase;color:var(--green);font-size:14px;margin-bottom:22px;
+    display:flex;align-items:center;gap:12px;}
+  .kicker .num{color:var(--g4)}
+  .kicker .bar{width:34px;height:2px;background:var(--green);display:inline-block}
+  h1,h2,h3{font-family:'Oswald',sans-serif;text-transform:uppercase;color:var(--white);font-weight:600;line-height:1.03}
+  .thesis{color:var(--g2);font-weight:300;line-height:1.5}
+  .accent{color:var(--green)}
+
+  /* Title */
+  .title-slide{justify-content:space-between}
+  .title-top{display:flex;justify-content:space-between;align-items:flex-start}
+  .logo{font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:.05em;color:var(--white);font-size:20px}
+  .logo b{color:var(--green)}
+  .title-tag{font-family:'Oswald',sans-serif;letter-spacing:.24em;color:var(--g3);font-size:13px;text-transform:uppercase}
+  .title-main h1{font-size:104px;letter-spacing:-.01em}
+  .title-main .sub{font-family:'Oswald',sans-serif;font-weight:400;color:var(--green);font-size:30px;letter-spacing:.06em;margin-top:8px;text-transform:uppercase}
+  .title-foot{display:flex;justify-content:space-between;align-items:flex-end;color:var(--g4);font-size:13px;font-family:'Oswald',sans-serif;letter-spacing:.12em;text-transform:uppercase}
+
+  /* Format */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:52px;margin-top:14px}
+  .step{border-left:2px solid var(--green);padding-left:22px}
+  .step .n{font-family:'Oswald',sans-serif;font-size:34px;color:var(--green);line-height:1}
+  .step h3{font-size:25px;margin:7px 0 10px}
+  .step p{color:var(--g3);font-weight:300;font-size:16px;line-height:1.5}
+
+  /* Agenda */
+  .agenda{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+  .agenda-row{display:grid;grid-template-columns:60px 1fr auto;align-items:center;gap:24px;
+    padding:15px 0;border-bottom:1px solid #1c2023}
+  .agenda-row .idx{font-family:'Oswald',sans-serif;font-size:29px;color:var(--green)}
+  .agenda-row .name{font-family:'Oswald',sans-serif;text-transform:uppercase;color:var(--white);font-size:25px;letter-spacing:.02em}
+  .agenda-row .own{font-family:'Oswald',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--g4);font-size:13px}
+  .agenda-row .own b{color:var(--g2);font-weight:500}
+
+  /* Divider */
+  .divider{justify-content:center}
+  .divider .bignum{font-family:'Oswald',sans-serif;font-weight:700;font-size:230px;color:#15181b;line-height:.8;position:absolute;top:20px;right:64px;letter-spacing:-.02em}
+  .divider h2{font-size:72px;max-width:82%;position:relative;z-index:2}
+  .divider .owner{margin-top:26px;font-family:'Oswald',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--g3);font-size:15px;position:relative;z-index:2}
+  .divider .owner b{color:var(--green);font-weight:600}
+  .divider .lead{margin-top:22px;max-width:66%;font-size:19px;color:var(--g2);font-weight:300;line-height:1.5;position:relative;z-index:2;border-left:2px solid var(--green);padding-left:18px}
+
+  /* Topic */
+  .topic h2{font-size:46px;max-width:88%;margin-bottom:6px}
+  .topic .lead{color:var(--g3);font-weight:300;font-size:17px;max-width:74%;margin-bottom:26px;line-height:1.45}
+  .qs{display:flex;flex-direction:column;gap:16px;max-width:86%}
+  .q{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start}
+  .q .dot{width:11px;height:11px;border:2px solid var(--green);border-radius:50%;margin-top:8px;flex:none}
+  .q p{color:var(--g1);font-weight:300;font-size:21px;line-height:1.38}
+  .q p em{color:var(--green);font-style:normal;font-weight:500}
+
+  /* Closing */
+  .end{justify-content:center;align-items:flex-start;text-align:left}
+  .end h1{font-size:80px}
+  .end .sub{margin-top:18px;color:var(--g3);font-weight:300;font-size:20px}
+  .end .logo-big{margin-top:40px;font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;color:var(--white);letter-spacing:.05em}
+  .end .logo-big b{color:var(--green)}
+
+  /* Chrome */
+  #progress{position:fixed;top:0;left:0;height:3px;background:var(--green);width:0;z-index:50;transition:width .4s ease}
+  #counter{position:fixed;bottom:18px;right:26px;z-index:50;font-family:'Oswald',sans-serif;letter-spacing:.14em;color:var(--g4);font-size:13px}
+  #counter b{color:var(--green)}
+  #brandmark{position:fixed;bottom:18px;left:26px;z-index:50;font-family:'Oswald',sans-serif;letter-spacing:.1em;color:var(--g4);font-size:13px;text-transform:uppercase}
+  #brandmark b{color:var(--g2)}
+  .nav-hint{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:50;color:#2c3033;font-size:12px;font-family:'Oswald',sans-serif;letter-spacing:.14em;text-transform:uppercase;transition:opacity .6s ease}
+  .arrows{position:fixed;bottom:14px;right:150px;z-index:50;display:flex;gap:8px}
+  .arrows button{background:transparent;border:1px solid #24282b;color:var(--g3);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:15px;line-height:1;transition:all .2s}
+  .arrows button:hover{border-color:var(--green);color:var(--green)}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="stage">
+  <div class="deck" id="deck">
+
+    <!-- 1. TITLE -->
+    <section class="slide title-slide active">
+      <div class="title-top">
+        <div class="logo">TENTENS<b>.</b></div>
+        <div class="title-tag">C-Level on stage</div>
+      </div>
+      <div class="title-main">
+        <div class="title-tag" style="margin-bottom:14px">Managers Bootcamp 2026</div>
+        <h1>DAY 2</h1>
+        <div class="sub">Розмова з C-Level</div>
+      </div>
+      <div class="title-foot">
+        <span>4 блоки · Open Mic · Q&amp;A</span>
+        <span>Context → Discussion</span>
+      </div>
+    </section>
+
+    <!-- AGENDA -->
+    <section class="slide">
+      <div class="kicker"><span class="bar"></span>Порядок денний</div>
+      <h2 style="font-size:44px;margin-bottom:16px">ПРО ЩО ГОВОРИМО</h2>
+      <div class="agenda">
+        <div class="agenda-row"><span class="idx">01</span><span class="name">Управління великою організацією</span><span class="own">Owner · <b>Роман</b></span></div>
+        <div class="agenda-row"><span class="idx">02</span><span class="name">Stakeholder &amp; Resource Management</span><span class="own">Owner · <b>Андрій</b></span></div>
+        <div class="agenda-row"><span class="idx">03</span><span class="name">Баланс бізнесу / продукту / технічки</span><span class="own">Owner · <b>Сергій</b></span></div>
+        <div class="agenda-row"><span class="idx">04</span><span class="name">Культура</span><span class="own">Owner · <b>Олексій</b></span></div>
+        <div class="agenda-row" style="border-bottom:none"><span class="idx" style="color:var(--green)">✷</span><span class="name">Open Mic &amp; Q&amp;A</span><span class="own">Усі</span></div>
+      </div>
+    </section>
+
+    <!-- 4. BLOCK 1 DIVIDER -->
+    <section class="slide divider">
+      <div class="bignum">01</div>
+      <div class="kicker"><span class="num">Блок 01</span></div>
+      <h2>УПРАВЛІННЯ ВЕЛИКОЮ ОРГАНІЗАЦІЄЮ</h2>
+      <div class="owner">Owner · <b>Роман</b></div>
+      <p class="lead">Раніше системою менеджерів керував лише C-Level. Тепер це обов’язок значно більшої кількості людей у залі. Блок — про те, в чому головні відмінності.</p>
+    </section>
+
+    <!-- 5. Найм -->
+    <section class="slide topic">
+      <div class="kicker"><span class="num">Блок 01 · Управління організацією</span></div>
+      <h2>НАЙМ</h2>
+      <p class="lead">Контролюєш не лише тих, кого менеджиш ти, а й тих, кого менеджать твої менеджери.</p>
+      <div class="qs">
+        <div class="q"><span class="dot"></span><p>Поточна проблема з bar raising: % непройдених. <em>Extra-protection чи just one of the filters?</em></p></div>
+        <div class="q"><span class="dot"></span><p>Чому ми не можемо дозволити собі знижувати планку навіть під час швидкого росту?</p></div>
+        <div class="q"><span class="dot"></span><p>Де проходить межа між <em>швидкістю</em> найму і <em>якістю</em>?</p></div>
+      </div>
+    </section>
+
+    <!-- 6. Менеджмент менеджерів -->
+    <section class="slide topic">
+      <div class="kicker"><span class="num">Блок 01 · Управління організацією</span></div>
+      <h2>МЕНЕДЖМЕНТ МЕНЕДЖЕРІВ</h2>
+      <div class="qs">
+        <div class="q"><span class="dot"></span><p>Як оцінювати ефективність <em>N-2</em> та <em>N-3</em>?</p></div>
+        <div class="q"><span class="dot"></span><p>Наскільки глибоко C-Level / Head має знати людей через кілька рівнів?</p></div>
+        <div class="q"><span class="dot"></span><p>Чи потрібні регулярні 1-on-1 з N-2 або N-3?</p></div>
+      </div>
+    </section>
+
+    <!-- 7. Делегування -->
+    <section class="slide topic">
+      <div class="kicker"><span class="num">Блок 01 · Управління організацією</span></div>
+      <h2>ДЕЛЕГУВАННЯ</h2>
+      <p class="lead">Було в запитах аудиторії.</p>
+      <div class="qs">
+        <div class="q"><span class="dot"></span><p>Коли потрібно <em>втручатися</em>?</p></div>
+        <div class="q"><span class="dot"></span><p>А коли навпаки — <em>дозволити менеджеру помилитися</em>?</p></div>
+      </div>
+    </section>
+
+    <!-- 8. Оргструктура -->
+    <section class="slide topic">
+      <div class="kicker"><span class="num">Блок 01 · Управління організацією</span></div>
+      <h2>ОРГАНІЗАЦІЙНА СТРУКТУРА</h2>
+      <p class="lead">Було в запитах аудиторії.</p>
+      <div class="qs">
+        <div class="q"><span class="dot"></span><p>Які сигнали кажуть, що структура <em>перестала працювати</em>?</p></div>
+        <div class="q"><span class="dot"></span><p>Як змінюються інформаційні потоки зі зростанням компанії?</p></div>
+      </div>
+    </section>
+
+    <!-- 9. BLOCK 2 DIVIDER -->
+    <section class="slide divider">
+      <div class="bignum">02</div>
+      <div class="kicker"><span class="num">Блок 02</span></div>
+      <h2>STAKEHOLDER &amp; RESOURCE MANAGEMENT</h2>
+      <div class="owner">Owner · <b>Андрій</b></div>
+      <p class="lead">Результат і довіра однаково важливі — пожертвуй одним, і в довгу програєш. Здається, останнім часом ми зачасто погоджуємось на неефективності заради довіри й хороших відносин.</p>
+    </section>
+
+    <!-- 10. Толерантність до неефективності -->
+    <section class="slide topic">
+      <div class="kicker"><span class="num">Блок 02 · Stakeholder &amp; Resource</span></div>
+      <h2>ТОЛЕРАНТНІСТЬ ДО НЕЕФЕКТИВНОСТІ</h2>
+      <p class="lead">«Аналітика нема — ну ок». «Продакт слабкий — теж ок». «Підлаштуємось».</p>
+      <div class="qs">
+        <div class="q"><span class="dot"></span><p>Де межа між <em>партнерством</em> і <em>прийняттям чужих проблем</em>?</p></div>
+        <div class="q"><span class="dot"></span><p>Коли терпимість до неефективності стає нашою власною неефективністю?</p></div>
+      </div>
+    </section>
+
+    <!-- 11. Дюна 2 -->
+    <section class="slide topic">
+      <div class="kicker"><span class="num">Блок 02 · Stakeholder &amp; Resource</span></div>
+      <h2>ДЮНА 2 І БОРОТЬБА ЗА РЕСУРСИ</h2>
+      <p class="lead">Ресурси завжди обмежені.</p>
+      <div class="qs">
+        <div class="q"><span class="dot"></span><p>Сильні керівники <em>не чекають</em> ресурсів — вони організовують їх навколо своєї задачі.</p></div>
+        <div class="q"><span class="dot"></span><p>Як це виглядає на практиці в наших командах? Де межа між «організувати» і «перетягнути ковдру»?</p></div>
+      </div>
+    </section>
+
+    <!-- 12. BLOCK 3 DIVIDER -->
+    <section class="slide divider">
+      <div class="bignum">03</div>
+      <div class="kicker"><span class="num">Блок 03</span></div>
+      <h2>БАЛАНС: БІЗНЕС · ПРОДУКТ · ТЕХНІЧКА · КОМПЛАЄНС</h2>
+      <div class="owner">Owner · <b>Сергій</b></div>
+      <p class="lead">Команди не можуть бути «замовником» і «виконавцем» — тільки партнерами. Цю культуру треба тримати руками й ногами, а місцями вона в нас розмивається.</p>
+    </section>
+
+    <!-- 13. Партнерство -->
+    <section class="slide topic">
+      <div class="kicker"><span class="num">Блок 03 · Баланс функцій</span></div>
+      <h2>ПАРТНЕРСТВО ЗАМІСТЬ «ЗАМОВНИК → ВИКОНАВЕЦЬ»</h2>
+      <div class="qs">
+        <div class="q"><span class="dot"></span><p>Партнерство продукту й розробки почало розмиватися? Чому? Зона комфорту й «простіше бути просто виконавцем».</p></div>
+        <div class="q"><span class="dot"></span><p>Хто відповідає за <em>бізнесове</em> мислення інженерів? За <em>технічне</em> — у нон-інженерів? За <em>комплаєнс</em>-мислення у всіх?</p></div>
+      </div>
+    </section>
+
+    <!-- 14. Приклади -->
+    <section class="slide topic">
+      <div class="kicker"><span class="num">Блок 03 · Баланс функцій</span></div>
+      <h2>КОЛИ БРАК РОЗУМІННЯ СУМІЖНИКІВ → ПОМИЛКИ</h2>
+      <p class="lead">Реальні кейси для розбору:</p>
+      <div class="qs">
+        <div class="q"><span class="dot"></span><p>Коли починається <em>Q5</em>?</p></div>
+        <div class="q"><span class="dot"></span><p>Що означає «бажаний» фінальний результат у новому UI?</p></div>
+        <div class="q"><span class="dot"></span><p>Скільки в нас має бути холдингів і як ми їх тестуємо?</p></div>
+      </div>
+    </section>
+
+    <!-- 15. BLOCK 4 DIVIDER -->
+    <section class="slide divider">
+      <div class="bignum">04</div>
+      <div class="kicker"><span class="num">Блок 04</span></div>
+      <h2>КУЛЬТУРА</h2>
+      <div class="owner">Owner · <b>Олексій</b></div>
+      <p class="lead">Зі скейлом культура між департаментами може роз’їжджатися — і ми це помічаємо. Senior Manager відповідає за культуру. Наскільки вона важлива у великій організації.</p>
+    </section>
+
+    <!-- 16. Культура — теми 1 -->
+    <section class="slide topic">
+      <div class="kicker"><span class="num">Блок 04 · Культура</span></div>
+      <h2>ЧЕСНИЙ РЕКАП І РІЗНІСТЬ ОЧІКУВАНЬ</h2>
+      <div class="qs">
+        <div class="q"><span class="dot"></span><p>Рекап останніх 2–3 років без прикрас: чому такі результати, як змінилась культура, що робити, щоб зберегти <em>трекшн</em>.</p></div>
+        <div class="q"><span class="dot"></span><p>Різні очікування в різних департаментах: коли це ок, а коли ні? Один працює 9–18, інший весь час овертаймить — це ок?</p></div>
+      </div>
+    </section>
+
+    <!-- 17. Культура — теми 2 -->
+    <section class="slide topic">
+      <div class="kicker"><span class="num">Блок 04 · Культура</span></div>
+      <h2>КУЛЬТУРНІ ПРОЯВИ ТА ЩО «НЕ ТАК»</h2>
+      <div class="qs">
+        <div class="q"><span class="dot"></span><p>Чому змінився формат ретріту після кейсу <em>***</em> — і чому це важливо.</p></div>
+        <div class="q"><span class="dot"></span><p>Що зараз не так з культурою, які проблеми ми бачимо.</p></div>
+      </div>
+    </section>
+
+    <!-- CLOSING -->
+    <section class="slide end">
+      <div class="kicker"><span class="bar"></span>Дякуємо</div>
+      <h1>ПОЇХАЛИ<br><span class="accent">РОЗБИРАТИСЬ БЛИЖЧЕ</span></h1>
+      <div class="sub">Питання — на сцену. Мікрофон відкритий.</div>
+      <div class="logo-big">TENTENS<b>.</b> · Managers Bootcamp 2026</div>
+    </section>
+
+  </div>
+</div>
+
+<div id="brandmark"><b>TENTENS</b> · MBC 2026</div>
+<div id="counter"><b id="cur">01</b> / <span id="total">19</span></div>
+<div class="nav-hint" id="hint">← → або пробіл · F — на весь екран</div>
+<div class="arrows"><button id="prev" aria-label="prev">‹</button><button id="next" aria-label="next">›</button></div>
+
+<script>
+  const deck = document.getElementById('deck');
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  const total = slides.length;
+  document.getElementById('total').textContent = String(total).padStart(2,'0');
+  const pad = n => String(n+1).padStart(2,'0');
+
+  function fit(){
+    const s = Math.min(window.innerWidth/1280, window.innerHeight/720);
+    deck.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+
+  function show(n){
+    i = Math.max(0, Math.min(total-1, n));
+    slides.forEach((s,idx)=>s.classList.toggle('active', idx===i));
+    document.getElementById('cur').textContent = pad(i);
+    document.getElementById('progress').style.width = (i/(total-1)*100)+'%';
+  }
+  const next=()=>show(i+1), prev=()=>show(i-1);
+
+  document.getElementById('next').addEventListener('click', next);
+  document.getElementById('prev').addEventListener('click', prev);
+
+  document.addEventListener('keydown', e=>{
+    if(['ArrowRight','PageDown',' '].includes(e.key)){ e.preventDefault(); next(); }
+    else if(['ArrowLeft','PageUp'].includes(e.key)){ e.preventDefault(); prev(); }
+    else if(e.key==='Home'){ show(0); }
+    else if(e.key==='End'){ show(total-1); }
+    else if(e.key==='f'||e.key==='F'){ toggleFs(); }
+  });
+
+  let x0=null;
+  document.addEventListener('touchstart', e=> x0=e.touches[0].clientX, {passive:true});
+  document.addEventListener('touchend', e=>{
+    if(x0===null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if(Math.abs(dx)>50){ dx<0 ? next() : prev(); }
+    x0=null;
+  });
+
+  function toggleFs(){
+    if(!document.fullscreenElement){ document.documentElement.requestFullscreen?.(); }
+    else{ document.exitFullscreen?.(); }
+  }
+
+  setTimeout(()=>{ document.getElementById('hint').style.opacity='0'; }, 4500);
+  fit(); show(0);
+</script>
+</body>
+</html>
